@@ -15,6 +15,33 @@ export default function PromptForm({
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (res.status === 429) {
+        setError("❌ You’ve hit the usage limit. Please try again later.");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Something went wrong. Please try again.");
+      }
+
+      const data = await res.json();
+      onResult(data.result);
+    } catch (err) {
+      console.error("Request failed:", err);
+      setError("❌ An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
